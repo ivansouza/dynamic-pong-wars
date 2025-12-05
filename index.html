@@ -3,42 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dynamic Pong Wars</title>
+  <title>Dynamic Pong Wars - Yin Yang Circular</title>
   <meta name="description" content="Dynamic Pong Wars – a colorful pong game where balls conquer opposing territory.">
   <meta name="author" content="Marko Denic">
   <meta name="theme-color" content="#000000">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta property="og:title" content="Dynamic Pong Wars">
-  <meta property="og:description" content="Play Dynamic Pong Wars – conquer the grid with your balls in a colorful pong battle.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://markodenic.tech">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Dynamic Pong Wars">
-  <meta name="twitter:description" content="Play Dynamic Pong Wars – conquer the grid with your balls in a colorful pong battle.">
-
   <style>
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
-      font-family: monospace;
+      font-family: 'Courier New', Courier, monospace;
       display: flex;
       flex-direction: column;
-      background: linear-gradient(to bottom, #000000 0%, #FFFFFF 100%);
+      background: linear-gradient(to bottom, #1a1a1a 0%, #2a2a2a 100%);
+      color: #fff;
     }
 
     main {
       flex: 1;
+      width: 100%;
       max-width: 600px;
       margin: 0 auto;
-      padding: 15px;
+      padding: 20px;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      text-align: center;
     }
 
+    /* Botões Flutuantes */
     #resetBtn, #playPauseBtn, #configBtn {
       position: fixed;
       top: 20px;
@@ -49,10 +44,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       cursor: pointer;
       z-index: 1000;
-      transition: background 0.2s, transform 0.15s ease;
+      transition: all 0.2s ease;
+      color: #000;
+    }
+
+    #resetBtn:hover, #playPauseBtn:hover, #configBtn:hover {
+      transform: scale(1.1);
     }
 
     #resetBtn { right: 140px; }
@@ -60,127 +60,187 @@
     #configBtn { right: 20px; }
 
     #resetBtn:active, #playPauseBtn:active, #configBtn:active {
-      transform: scale(0.97);
+      transform: scale(0.95);
     }
 
     #resetBtn svg, #playPauseBtn svg, #configBtn svg {
-      stroke: #000;
-      width: 30px;
-      height: 30px;
+      stroke: currentColor;
+      width: 24px;
+      height: 24px;
       fill: none;
     }
 
+    /* Painel de Configuração */
     #configPanel {
       position: fixed;
-      top: 10px;
-      right: -280px;
-      width: 220px;
-      background: #fff;
-      padding: 75px 25px 25px;
-      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
+      top: 80px;
+      right: 20px;
+      width: 200px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       border-radius: 12px;
-      display: flex;
+      display: none;
       flex-direction: column;
-      gap: 20px;
+      gap: 15px;
       z-index: 999;
-      transition: right 0.18s ease-out;
+      color: #000;
     }
 
-    #configPanel.visible { right: 10px; }
+    #configPanel.visible { display: flex; animation: fadeIn 0.3s; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     #configPanel label {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      justify-content: space-between;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    /* Container do Jogo */
+    .game-container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+      overflow: hidden; /* Garante que o canvas fique redondo visualmente */
+      background: #000;
     }
 
     canvas {
-      width: 100%;
-      margin-top: auto;
-      border-radius: 4px;
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
       display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Overlay de Start */
+    #startOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      border-radius: 50%;
+      backdrop-filter: blur(2px);
+      transition: opacity 0.3s;
+    }
+
+    #startBtn {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 15px 40px;
+      font-size: 24px;
+      font-weight: bold;
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 30px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    #startBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
     }
 
     #scoreDisplay {
-      padding: 15px;
-      font-size: 16px;
-      color: white;
-      background: black;
-      border-bottom-left-radius: 6px;
-      border-bottom-right-radius: 6px;
-      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      font-weight: bold;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 20px;
+      border: 1px solid #444;
     }
 
     footer {
-      padding: 15px;
-      background: #000;
-      color: #fff;
+      margin-top: auto;
+      padding: 20px;
       text-align: center;
-      font-size: 14px;
+      font-size: 12px;
+      color: #888;
     }
 
-    footer a { color: #ffc600; }
+    footer a { color: #fff; text-decoration: none; border-bottom: 1px dotted #888; }
   </style>
 </head>
 <body>
-<div id="resetBtn">
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-    <path d="M4 12v-3a3 3 0 0 1 3 -3h13m-3 -3l3 3l-3 3"/>
-    <path d="M20 12v3a3 3 0 0 1 -3 3h-13m3 3l-3 -3l3 -3"/>
+
+<!-- Botões de Controle -->
+<div id="resetBtn" title="Reiniciar">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
   </svg>
 </div>
 
-<div id="playPauseBtn" data-playing="true">
-  <svg class="play-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-    <path d="M7 4v16l13 -8z" />
+<div id="playPauseBtn" data-playing="false" title="Pausar/Continuar">
+  <!-- Ícone Play -->
+  <svg class="play-icon" style="display: block;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="5 3 19 12 5 21 5 3"></polygon>
   </svg>
-  <svg class="pause-icon" style="display: block;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-    <path d="M6 5h4v14h-4z m8 0h4v14h-4z"/>
+  <!-- Ícone Pause -->
+  <svg class="pause-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="4" width="4" height="16"></rect>
+    <rect x="14" y="4" width="4" height="16"></rect>
   </svg>
 </div>
 
-<div id="configBtn">
-  <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-    <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"/>
-    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
+<div id="configBtn" title="Configurações">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
   </svg>
 </div>
 
 <div id="configPanel">
   <label>
-    Day color:
+    Day Color (Light)
     <input type="color" id="dayColorInput" value="#FFFFFF"/>
   </label>
   <label>
-    Night color:
+    Night Color (Dark)
     <input type="color" id="nightColorInput" value="#000000"/>
   </label>
 </div>
 
 <main>
-  <div>
+  <div class="game-container">
     <canvas id="gameCanvas" width="600" height="600"></canvas>
-    <div id="scoreDisplay"></div>
+    
+    <!-- Start Button Overlay -->
+    <div id="startOverlay">
+      <button id="startBtn">START</button>
+    </div>
   </div>
+  
+  <div id="scoreDisplay">Day: 50% | Night: 50%</div>
 </main>
 
 <footer>
-  Made by <a href="https://markodenic.tech" target="_blank">Marko Denic</a>. Source on
-  <a href="https://github.com/markodenic/dynamic-pong-wars" target="_blank">GitHub</a>. Inspired by
-  <a href="https://github.com/vnglst/pong-wars" target="_blank">Pong Wars</a>.
+  Based on Pong Wars.
 </footer>
 
 <script>
+  // Setup Canvas
   const canvas = document.querySelector("#gameCanvas");
   const ctx = canvas.getContext("2d");
+  
+  // UI Elements
   const scoreDisplay = document.querySelector("#scoreDisplay");
   const dayColorInput = document.querySelector("#dayColorInput");
   const nightColorInput = document.querySelector("#nightColorInput");
@@ -190,212 +250,350 @@
   const playPauseBtn = document.querySelector("#playPauseBtn");
   const playIcon = playPauseBtn.querySelector(".play-icon");
   const pauseIcon = playPauseBtn.querySelector(".pause-icon");
+  const startBtn = document.querySelector("#startBtn");
+  const startOverlay = document.querySelector("#startOverlay");
 
-  const TILE_SIZE = 25;
+  // Game Constants
+  const TILE_SIZE = 20;
+  const GRID_WIDTH = canvas.width / TILE_SIZE;
+  const GRID_HEIGHT = canvas.height / TILE_SIZE;
   const MAX_SPEED = 10;
-  const MIN_SPEED = 5;
-  const ACCELERATION = 0.1;
-
+  const MIN_SPEED = 6;
+  const GAME_RADIUS = (canvas.width / 2) - 2; // Radius of playfield (minus slight buffer)
+  const CENTER_X = canvas.width / 2;
+  const CENTER_Y = canvas.height / 2;
+  
+  // Game State
   let dayColor = "#FFFFFF";
   let nightColor = "#000000";
-  let dayScore = 0;
-  let nightScore = 0;
-  let iteration = 0;
-  let isPlaying = true;
+  let isPlaying = false;
   let animationFrameId = null;
 
-  const gridWidth = canvas.width / TILE_SIZE;
-  const gridHeight = canvas.height / TILE_SIZE;
-
-  const ownership = new Array(gridWidth * gridHeight).fill(0).map((_, idx) =>
-                                                                      idx % gridWidth < gridWidth / 2 ? 0 : 1
-  );
-
-  const grid = new Array(gridWidth * gridHeight).fill(0).map((_, idx) => ({
-    x: (idx % gridWidth) * TILE_SIZE,
-    y: Math.floor(idx / gridWidth) * TILE_SIZE,
+  // Initialize Grid Ownership
+  // 0 = Day, 1 = Night
+  const ownership = new Array(GRID_WIDTH * GRID_HEIGHT).fill(0);
+  
+  // Grid Objects (for rendering)
+  const grid = new Array(GRID_WIDTH * GRID_HEIGHT).fill(null).map((_, idx) => ({
+    x: (idx % GRID_WIDTH) * TILE_SIZE,
+    y: Math.floor(idx / GRID_WIDTH) * TILE_SIZE,
     get color() {
       return ownership[idx] === 0 ? dayColor : nightColor;
     }
   }));
 
+  // Balls
   const balls = [
     {
-      x: canvas.width / 4,
-      y: canvas.height / 2,
-      vx: 8,
-      vy: -8,
+      // Night Ball (Black)
+      x: 0, y: 0, vx: 0, vy: 0,
       get color() { return nightColor; },
       get targetColor() { return dayColor; }
     },
     {
-      x: (canvas.width / 4) * 3,
-      y: canvas.height / 2,
-      vx: -8,
-      vy: 8,
+      // Day Ball (White)
+      x: 0, y: 0, vx: 0, vy: 0,
       get color() { return dayColor; },
       get targetColor() { return nightColor; }
     }
   ];
 
-  function toggleConfigPanel() {
-    configPanel.classList.toggle("visible");
-  }
+  // --- Yin Yang Logic ---
+  
+  function calculateYinYangMap() {
+    const cx = GRID_WIDTH / 2;
+    const cy = GRID_HEIGHT / 2;
+    const r = GRID_WIDTH / 2; // Radius of main circle in grid units
+    const dotRadius = r / 6;
 
-  function togglePlayPause() {
-    isPlaying = !isPlaying;
-    playIcon.style.display = isPlaying ? "none" : "block";
-    pauseIcon.style.display = isPlaying ? "block" : "none";
-    playPauseBtn.dataset.playing = isPlaying;
-    if (isPlaying) {
-      animationFrameId = requestAnimationFrame(render);
-    } else {
-      cancelAnimationFrame(animationFrameId);
+    for (let idx = 0; idx < ownership.length; idx++) {
+      const x = (idx % GRID_WIDTH);
+      const y = Math.floor(idx / GRID_WIDTH);
+      
+      // Distances from centers of the two smaller circles
+      const dTop = Math.hypot(x - cx, y - (cy - r/2));
+      const dBottom = Math.hypot(x - cx, y - (cy + r/2));
+      const dCenter = Math.hypot(x - cx, y - cy);
+
+      // If outside the main circle, ignore (or keep default). 
+      // This is purely visual for the grid, collision is handled separately.
+      
+      // 1. Dots (Eyes)
+      if (dTop < dotRadius) {
+        ownership[idx] = 0; // Top dot is Day (White)
+        continue;
+      }
+      if (dBottom < dotRadius) {
+        ownership[idx] = 1; // Bottom dot is Night (Black)
+        continue;
+      }
+
+      // 2. Swirls
+      if (dTop < r/2) {
+        ownership[idx] = 1; // Top swirl is Night
+        continue;
+      }
+      if (dBottom < r/2) {
+        ownership[idx] = 0; // Bottom swirl is Day
+        continue;
+      }
+
+      // 3. Main Split
+      ownership[idx] = x > cx ? 1 : 0; // Right is Night, Left is Day
     }
   }
 
-  function updateBackground() {
-    document.body.style.background = `linear-gradient(to bottom, ${nightColor} 0%, ${dayColor} 100%)`;
+  function resetBallPositions() {
+    // Top Dot (White Territory) Center
+    const topY = canvas.height / 4;
+    // Bottom Dot (Black Territory) Center
+    const bottomY = (canvas.height / 4) * 3;
+    const centerX = canvas.width / 2;
+
+    // Ball 0 (Night/Black Ball) starts in Bottom Dot
+    balls[0].x = centerX;
+    balls[0].y = bottomY;
+    balls[0].vx = (Math.random() - 0.5) * 4; 
+    balls[0].vy = -5;
+
+    // Ball 1 (Day/White Ball) starts in Top Dot
+    balls[1].x = centerX;
+    balls[1].y = topY;
+    balls[1].vx = (Math.random() - 0.5) * 4;
+    balls[1].vy = 5;
   }
+
+  // --- Core Game Functions ---
 
   function drawTile(tile) {
     ctx.fillStyle = tile.color;
-    ctx.fillRect(tile.x, tile.y, TILE_SIZE, TILE_SIZE);
+    // +1 to width/height to fix sub-pixel rendering gaps
+    ctx.fillRect(tile.x, tile.y, TILE_SIZE + 0.5, TILE_SIZE + 0.5);
   }
 
   function drawBall(ball) {
     ctx.beginPath();
-    ctx.arc(ball.x, ball.y, TILE_SIZE / 2, 0, Math.PI * 2);
+    ctx.arc(ball.x, ball.y, TILE_SIZE / 1.5, 0, Math.PI * 2);
     ctx.fillStyle = ball.color;
     ctx.fill();
+    
+    // Outline cinza para visibilidade em ambos os fundos
+    ctx.strokeStyle = "#888"; 
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
     ctx.closePath();
   }
 
-  function detectCollision(ball) {
-    const ballRect = {
-      left: ball.x - TILE_SIZE / 2,
-      right: ball.x + TILE_SIZE / 2,
-      top: ball.y - TILE_SIZE / 2,
-      bottom: ball.y + TILE_SIZE / 2
-    };
-    grid.forEach((tile, idx) => {
-      const tileRect = {
-        left: tile.x,
-        right: tile.x + TILE_SIZE,
-        top: tile.y,
-        bottom: tile.y + TILE_SIZE
-      };
-      if (
-          ballRect.right > tileRect.left &&
-          ballRect.left < tileRect.right &&
-          ballRect.bottom > tileRect.top &&
-          ballRect.top < tileRect.bottom &&
-          ownership[idx] !== (ball === balls[0] ? 0 : 1)
-      ) {
-        ownership[idx] = ball === balls[0] ? 0 : 1;
-        const dx = ball.x - (tile.x + TILE_SIZE / 2);
-        const dy = ball.y - (tile.y + TILE_SIZE / 2);
-        if (Math.abs(dx) > Math.abs(dy)) {
-          ball.vx = -ball.vx;
-        } else {
-          ball.vy = -ball.vy;
+  function detectCollision(ball, ballIndex) {
+    // Determine grid bounds for the ball to avoid checking all tiles
+    const startX = Math.max(0, Math.floor((ball.x - TILE_SIZE) / TILE_SIZE));
+    const endX = Math.min(GRID_WIDTH, Math.ceil((ball.x + TILE_SIZE) / TILE_SIZE));
+    const startY = Math.max(0, Math.floor((ball.y - TILE_SIZE) / TILE_SIZE));
+    const endY = Math.min(GRID_HEIGHT, Math.ceil((ball.y + TILE_SIZE) / TILE_SIZE));
+
+    for(let y = startY; y < endY; y++) {
+      for(let x = startX; x < endX; x++) {
+        const idx = y * GRID_WIDTH + x;
+        const tile = grid[idx];
+        
+        // Check if tile is inside the game circle (approximate) to avoid painting corners
+        const tileDist = Math.hypot(tile.x + TILE_SIZE/2 - CENTER_X, tile.y + TILE_SIZE/2 - CENTER_Y);
+        if (tileDist > GAME_RADIUS) continue;
+
+        // Simple AABB collision check slightly adjusted for ball center
+        if (
+          ball.x + TILE_SIZE/2 > tile.x &&
+          ball.x - TILE_SIZE/2 < tile.x + TILE_SIZE &&
+          ball.y + TILE_SIZE/2 > tile.y &&
+          ball.y - TILE_SIZE/2 < tile.y + TILE_SIZE
+        ) {
+          
+          const currentOwner = ownership[idx];
+          const targetOwner = ballIndex === 0 ? 1 : 0; 
+
+          if (currentOwner !== targetOwner) {
+            // CONQUER TILE
+            ownership[idx] = targetOwner;
+            
+            // BOUNCE
+            const dx = ball.x - (tile.x + TILE_SIZE / 2);
+            const dy = ball.y - (tile.y + TILE_SIZE / 2);
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+              ball.vx = -ball.vx;
+            } else {
+              ball.vy = -ball.vy;
+            }
+            
+            ball.vx += (Math.random() - 0.5) * 0.2;
+            ball.vy += (Math.random() - 0.5) * 0.2;
+            return; 
+          }
         }
       }
-    });
-  }
-
-  function checkBoundaries(ball) {
-    if (ball.x < TILE_SIZE / 2 || ball.x > canvas.width - TILE_SIZE / 2) {
-      ball.vx = -ball.vx;
-      ball.x = Math.max(TILE_SIZE / 2, Math.min(canvas.width - TILE_SIZE / 2, ball.x));
-    }
-    if (ball.y < TILE_SIZE / 2 || ball.y > canvas.height - TILE_SIZE / 2) {
-      ball.vy = -ball.vy;
-      ball.y = Math.max(TILE_SIZE / 2, Math.min(canvas.height - TILE_SIZE / 2, ball.y));
     }
   }
 
-  function updateBall(ball) {
-    ball.vx += (Math.random() - 0.5) * ACCELERATION;
-    ball.vy += (Math.random() - 0.5) * ACCELERATION;
-    const speed = Math.sqrt(ball.vx ** 2 + ball.vy ** 2);
-    if (speed > MAX_SPEED) {
-      const scale = MAX_SPEED / speed;
-      ball.vx *= scale;
-      ball.vy *= scale;
-    }
-    if (speed < MIN_SPEED) {
-      const scale = MIN_SPEED / speed;
-      ball.vx *= scale;
-      ball.vy *= scale;
-    }
+  function updateBallPhysics(ball) {
+    // 1. Move
     ball.x += ball.vx;
     ball.y += ball.vy;
-  }
 
-  function resetGame() {
-    ownership.forEach((_, idx) => {
-      ownership[idx] = idx % gridWidth < gridWidth / 2 ? 0 : 1;
-    });
-    balls[0].x = canvas.width / 4;
-    balls[0].y = canvas.height / 2;
-    balls[0].vx = 8;
-    balls[0].vy = -8;
-    balls[1].x = (canvas.width / 4) * 3;
-    balls[1].y = canvas.height / 2;
-    balls[1].vx = -8;
-    balls[1].vy = 8;
-    iteration = 0;
-    if (!isPlaying) togglePlayPause();
+    // 2. Circular Boundary Check
+    const distFromCenter = Math.hypot(ball.x - CENTER_X, ball.y - CENTER_Y);
+    const ballRadius = TILE_SIZE / 1.5;
+
+    // If ball hits the edge of the circle
+    if (distFromCenter + ballRadius >= GAME_RADIUS) {
+      
+      // Calculate Normal Vector (from Center to Ball)
+      const nx = (ball.x - CENTER_X) / distFromCenter;
+      const ny = (ball.y - CENTER_Y) / distFromCenter;
+
+      // Reflect Velocity Vector: V_new = V_old - 2(V_old . N) * N
+      const dotProduct = ball.vx * nx + ball.vy * ny;
+      
+      ball.vx = ball.vx - 2 * dotProduct * nx;
+      ball.vy = ball.vy - 2 * dotProduct * ny;
+
+      // Push ball back inside to prevent sticking
+      const overlap = (distFromCenter + ballRadius) - GAME_RADIUS;
+      ball.x -= overlap * nx;
+      ball.y -= overlap * ny;
+    }
+
+    // 3. Speed Clamping
+    const speed = Math.hypot(ball.vx, ball.vy);
+    if (speed > MAX_SPEED) {
+      ball.vx = (ball.vx / speed) * MAX_SPEED;
+      ball.vy = (ball.vy / speed) * MAX_SPEED;
+    } else if (speed < MIN_SPEED) {
+      ball.vx = (ball.vx / speed) * MIN_SPEED;
+      ball.vy = (ball.vy / speed) * MIN_SPEED;
+    }
   }
 
   function render() {
+    // Clear whole canvas (corners will be black/bg color)
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    dayScore = 0;
-    nightScore = 0;
-    grid.forEach((tile, idx) => {
-      drawTile(tile);
-      if (ownership[idx] === 0) dayScore++;
-      if (ownership[idx] === 1) nightScore++;
-    });
-    scoreDisplay.textContent = `Day: ${dayScore} | Night: ${nightScore}`;
-    balls.forEach(ball => {
+    
+    // Draw Grid
+    // We only render tiles inside the circle for visual cleanliness, 
+    // or render all and let CSS rounded corners hide them. 
+    // Since CSS hides them, we can just loop all.
+    let dayCount = 0;
+    let nightCount = 0;
+    
+    // Count active pixels for score (approximate based on grid)
+    for(let i=0; i<grid.length; i++) {
+        // Optional: Skip drawing tiles outside radius to ensure clean edges visually if CSS fails
+        // const dist = Math.hypot(grid[i].x - CENTER_X, grid[i].y - CENTER_Y);
+        // if (dist > GAME_RADIUS + TILE_SIZE) continue; 
+
+        drawTile(grid[i]);
+        if (ownership[i] === 0) dayCount++; else nightCount++;
+    }
+
+    // Update Scores
+    const total = dayCount + nightCount;
+    const dayPct = Math.round((dayCount / total) * 100);
+    const nightPct = 100 - dayPct;
+    scoreDisplay.textContent = `Day: ${dayPct}% | Night: ${nightPct}%`;
+
+    // Draw & Update Balls
+    balls.forEach((ball, idx) => {
       drawBall(ball);
-      detectCollision(ball);
-      checkBoundaries(ball);
-      updateBall(ball);
+      if (isPlaying) {
+        detectCollision(ball, idx);
+        updateBallPhysics(ball);
+      }
     });
-    iteration++;
-    if (iteration % 1000 === 0) console.log("Iteration:", iteration);
+
     if (isPlaying) {
       animationFrameId = requestAnimationFrame(render);
     }
   }
 
-  function updateAllColors() {
-    balls[0].color = nightColor;
-    balls[1].color = dayColor;
-    updateBackground();
+  // --- Interaction Functions ---
+
+  function startGame() {
+    startOverlay.style.opacity = '0';
+    setTimeout(() => startOverlay.style.display = 'none', 300);
+    isPlaying = true;
+    updatePlayPauseIcon();
+    render();
   }
 
-  function handleDayColorChange(e) {
-    dayColor = e.target.value;
-    updateAllColors();
+  function stopGame() {
+    isPlaying = false;
+    cancelAnimationFrame(animationFrameId);
+    updatePlayPauseIcon();
   }
 
-  function handleNightColorChange(e) {
-    nightColor = e.target.value;
-    updateAllColors();
+  function togglePlayPause() {
+    if (startOverlay.style.display !== 'none') {
+        startGame();
+        return;
+    }
+
+    if (isPlaying) {
+      stopGame();
+    } else {
+      isPlaying = true;
+      render();
+    }
+    updatePlayPauseIcon();
   }
 
-  configBtn.addEventListener("click", toggleConfigPanel);
+  function updatePlayPauseIcon() {
+    if (isPlaying) {
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+    } else {
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+  }
+
+  function resetGame() {
+    stopGame();
+    calculateYinYangMap();
+    resetBallPositions();
+    
+    startOverlay.style.display = 'flex';
+    setTimeout(() => startOverlay.style.opacity = '1', 10);
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    grid.forEach(drawTile);
+    balls.forEach(drawBall);
+    scoreDisplay.textContent = "Day: 50% | Night: 50%";
+  }
+
+  function handleColorChange() {
+    dayColor = dayColorInput.value;
+    nightColor = nightColorInput.value;
+    if (!isPlaying) {
+        grid.forEach(drawTile);
+        balls.forEach(drawBall);
+    }
+  }
+
+  // --- Event Listeners ---
+  startBtn.addEventListener("click", startGame);
   resetBtn.addEventListener("click", resetGame);
   playPauseBtn.addEventListener("click", togglePlayPause);
-  dayColorInput.addEventListener("input", handleDayColorChange);
-  nightColorInput.addEventListener("input", handleNightColorChange);
+  configBtn.addEventListener("click", () => configPanel.classList.toggle("visible"));
+  dayColorInput.addEventListener("input", handleColorChange);
+  nightColorInput.addEventListener("input", handleColorChange);
 
-  updateBackground();
-  animationFrameId = requestAnimationFrame(render);
+  // --- Initialization ---
+  calculateYinYangMap();
+  resetBallPositions();
+  
+  grid.forEach(drawTile);
+  balls.forEach(drawBall);
+
 </script>
 </body>
 </html>
+
