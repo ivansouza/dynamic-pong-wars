@@ -1,6 +1,7 @@
 # Dynamic Pong Wars
 
 A playable, customizable version of [Pong Wars](https://github.com/vnglst/pong-wars) with play/pause, reset, and live color pickers.
+Adapted for a yin yang shaped playfield. 
 
 **Play it now:** [markodenic.tech/dynamic-pong-wars](https://markodenic.tech/dynamic-pong-wars)
 
